@@ -4,6 +4,7 @@ import './globals.css'
 import Topbar from '@/components/Topbar'
 import Footer from '@/components/Footer'
 import { BlogProvider } from '@/context/BlogContext'
+import { ThemeProvider } from '@/context/ThemeContext'
 
 const geistSans = Geist({
     variable: '--font-geist-sans',
@@ -80,11 +81,13 @@ export default function RootLayout({
             <body
                 className={`${geistSans.variable} ${geistMono.variable} antialiased min-h-screen flex flex-col`}
             >
-                <BlogProvider>
-                    <Topbar />
-                    <main className="flex-1">{children}</main>
-                    <Footer />
-                </BlogProvider>
+                <ThemeProvider>
+                    <BlogProvider>
+                        <Topbar />
+                        <main className="flex-1">{children}</main>
+                        <Footer />
+                    </BlogProvider>
+                </ThemeProvider>
             </body>
         </html>
     )
