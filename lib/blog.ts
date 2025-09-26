@@ -2,20 +2,19 @@ import matter from 'gray-matter'
 import path from 'path'
 import fs from 'fs'
 import { z } from 'zod'
+import type { PostMetadata as UnifiedPostMetadata } from '@/types/post'
 
-// Blog Post Schema
-export const PostMetadataSchema = z.object({
+// Frontmatter schema (raw), later mapped to unified PostMetadata
+const FrontmatterSchema = z.object({
     title: z.string().min(1, 'Title is required'),
     read_time: z.string().min(1, 'Read time is required'),
     bio: z.string().min(1, 'Bio is required'),
-    slug: z.string().min(1, 'Slug is required'),
     image: z.string().url('Invalid image URL').optional(),
-    date: z.string().datetime('Invalid date format').optional(),
-    content: z.string().min(1, 'Content is required'),
+    date: z.string().optional(),
 })
-export type PostMetadata = z.infer<typeof PostMetadataSchema>
 
-export const PostMetadataArraySchema = z.array(PostMetadataSchema)
+export type PostMetadata = UnifiedPostMetadata
+
 export async function getPostMetadataSSG(
     basePath?: string,
 ): Promise<PostMetadata[]> {
@@ -38,8 +37,8 @@ export async function getPostMetadataSSG(
                     const fileContents = fs.readFileSync(filePath, 'utf8')
                     const matterResult = matter(fileContents)
 
-                    const postData = {
-                        title: matterResult.data.title || 'Untitled',
+                    const raw = FrontmatterSchema.safeParse({
+                        title: matterResult.data.title,
                         read_time: matterResult.data.read_time || '5 min read',
                         bio:
                             matterResult.data.description ||
@@ -47,12 +46,23 @@ export async function getPostMetadataSSG(
                             'No description available',
                         image: matterResult.data.image,
                         date: matterResult.data.date,
+                    })
+                    if (!raw.success)
+                        throw new Error(
+                            raw.error.message || 'Invalid frontmatter',
+                        )
+
+                    const mapped: PostMetadata = {
+                        title: raw.data.title,
+                        readTime: raw.data.read_time,
+                        bio: raw.data.bio,
+                        image: raw.data.image,
+                        date: raw.data.date,
                         slug: filename.replace('.md', ''),
                         content: matterResult.content,
                     }
 
-                    // Validate with Zod
-                    return PostMetadataSchema.parse(postData)
+                    return mapped
                 } catch (error) {
                     console.error(`Error processing file ${filename}:`, error)
                     return null
@@ -60,7 +70,7 @@ export async function getPostMetadataSSG(
             }),
         )
 
-        // Filter out null values and validate array
+        // Filter out null values
         const validPosts = posts.filter(
             (post): post is PostMetadata => post !== null,
         )
@@ -73,7 +83,7 @@ export async function getPostMetadataSSG(
             return 0
         })
 
-        return PostMetadataArraySchema.parse(sortedPosts)
+        return sortedPosts
     } catch (error) {
         console.error('Error getting post metadata:', error)
         return []
@@ -95,8 +105,8 @@ export async function getPostBySlugSSG(
         const fileContents = fs.readFileSync(fullPath, 'utf8')
         const matterResult = matter(fileContents)
 
-        const postData = {
-            title: matterResult.data.title || 'Untitled',
+        const raw = FrontmatterSchema.safeParse({
+            title: matterResult.data.title,
             read_time: matterResult.data.read_time || '5 min read',
             bio:
                 matterResult.data.description ||
@@ -104,11 +114,20 @@ export async function getPostBySlugSSG(
                 'No description available',
             image: matterResult.data.image,
             date: matterResult.data.date,
-            slug: slug,
+        })
+        if (!raw.success) return null
+
+        const mapped: PostMetadata = {
+            title: raw.data.title,
+            readTime: raw.data.read_time,
+            bio: raw.data.bio,
+            image: raw.data.image,
+            date: raw.data.date,
+            slug,
             content: matterResult.content,
         }
 
-        return PostMetadataSchema.parse(postData)
+        return mapped
     } catch (error) {
         console.error(`Error getting post by slug ${slug}:`, error)
         return null

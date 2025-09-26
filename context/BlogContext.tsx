@@ -22,12 +22,11 @@ type Action =
 
 type BlogContextValue = {
     posts: Post[]
-    createPost: (data: Omit<Post, 'id'>) => Post
+    createPost: (data: Omit<Post, 'id' | 'readTime'>) => Post
     updatePost: (post: Post) => void
     deletePost: (id: string) => void
     getPostById: (id: string) => Post | undefined
 }
-
 const BlogContext = createContext<BlogContextValue | null>(null)
 
 const STORAGE_KEY = 'simple_blog_posts'
@@ -64,6 +63,7 @@ const samplePosts: Post[] = [
         author: 'Demo Author',
         email: 'demo@example.com',
         date: '2024-01-01',
+        readTime: '1 min read',
     },
 ]
 
@@ -79,7 +79,7 @@ export function BlogProvider({ children }: { children: React.ReactNode }) {
                 const raw = localStorage.getItem(STORAGE_KEY)
                 if (raw) {
                     const parsed = JSON.parse(raw) as Post[]
-                    if (Array.isArray(parsed) && parsed.length > 0) {
+                    if (Array.isArray(parsed)) {
                         dispatch({ type: 'reset', payload: parsed })
                     }
                 }
@@ -89,21 +89,22 @@ export function BlogProvider({ children }: { children: React.ReactNode }) {
     }, [])
 
     useEffect(() => {
-        if (!hydratedRef.current) return // Avoid overwriting storage before hydration completes
+        if (!hydratedRef.current) return
         try {
             if (typeof window !== 'undefined') {
                 localStorage.setItem(STORAGE_KEY, JSON.stringify(state.posts))
             }
-        } catch {
-            // ignore
-        }
+        } catch {}
     }, [state.posts])
 
     const value = useMemo<BlogContextValue>(
         () => ({
             posts: state.posts,
-            createPost: (data) => {
-                const post: Post = { id: uuidv4(), ...data }
+            createPost: (data: Omit<Post, 'id' | 'readTime'>) => {
+                const words = (data.content || '').trim().split(/\s+/).length
+                const minutes = Math.max(1, Math.ceil(words / 200))
+                const readTime = `${minutes} min read`
+                const post: Post = { id: uuidv4(), readTime, ...data }
                 dispatch({ type: 'add', payload: post })
                 return post
             },

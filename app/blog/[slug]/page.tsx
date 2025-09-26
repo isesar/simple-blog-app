@@ -41,8 +41,8 @@ export default async function BlogPostPage({
                         {post.date
                             ? new Date(post.date).toLocaleDateString()
                             : null}
-                        {post.read_time
-                            ? (post.date ? ' • ' : '') + post.read_time
+                        {post.readTime
+                            ? (post.date ? ' • ' : '') + post.readTime
                             : null}
                     </p>
                     {post.bio && (
