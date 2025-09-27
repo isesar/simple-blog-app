@@ -1,6 +1,5 @@
 import { notFound } from 'next/navigation'
 import { getAllSlugsSSG, getPostBySlugSSG } from '@/lib/blog'
-import ClientPostReader from '@/components/ClientPostReader'
 import PostArticle from '@/components/PostArticle'
 
 export async function generateStaticParams() {
@@ -11,7 +10,7 @@ export async function generateStaticParams() {
 export async function generateMetadata({
     params,
 }: {
-    params: Promise<{ handle: string }>
+    params: { handle: string }
 }) {
     const { handle } = await params
     const post = await getPostBySlugSSG(handle, 'content')
@@ -31,6 +30,7 @@ export default async function UnifiedPostPage({
     const { handle } = await params
 
     const post = await getPostBySlugSSG(handle, 'content')
+
     if (post) {
         return (
             <main className="mx-auto max-w-3xl px-4 sm:px-6 py-10">
@@ -40,7 +40,6 @@ export default async function UnifiedPostPage({
                     date={post.date}
                     readTime={post.readTime}
                     bio={post.bio}
-                    image={post.image}
                 />
             </main>
         )
@@ -48,5 +47,8 @@ export default async function UnifiedPostPage({
 
     // Fallback to client post reader (CSR), which can access BlogContext
     if (!handle) return notFound()
+    const { default: ClientPostReader } = await import(
+        '@/components/ClientPostReader'
+    )
     return <ClientPostReader handle={handle} />
 }

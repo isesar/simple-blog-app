@@ -24,7 +24,7 @@ export default function EditPostPage() {
 
     function handleSubmit(data: Omit<Post, 'id'>) {
         updatePost({ ...current, ...data })
-        router.push(`/posts/${current.id}`)
+        router.push(`/blog/${current.id}`)
     }
 
     return (

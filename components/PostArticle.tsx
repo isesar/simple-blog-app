@@ -1,5 +1,4 @@
 import React from 'react'
-import Image from 'next/image'
 import ReactMarkdown from 'react-markdown'
 import remarkGfm from 'remark-gfm'
 import rehypeHighlight from 'rehype-highlight'
@@ -10,7 +9,6 @@ export type PostArticleProps = {
     date?: string
     readTime?: string
     bio?: string
-    image?: string
 }
 
 export default function PostArticle({
@@ -19,7 +17,6 @@ export default function PostArticle({
     date,
     readTime,
     bio,
-    image,
 }: PostArticleProps) {
     return (
         <article className="prose-blog">
@@ -36,18 +33,6 @@ export default function PostArticle({
                 ) : null}
                 <hr className="mt-4 border-border" />
             </header>
-
-            {image ? (
-                <div className="mb-6">
-                    <Image
-                        src={image}
-                        alt={title}
-                        width={1200}
-                        height={630}
-                        className="rounded-xl border"
-                    />
-                </div>
-            ) : null}
 
             <ReactMarkdown
                 remarkPlugins={[remarkGfm]}

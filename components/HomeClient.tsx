@@ -3,7 +3,7 @@
 import React from 'react'
 import { useBlog } from '@/context/BlogContext'
 import type { Post } from '@/types/post'
-import type { PostMetadata } from '@/lib/blog'
+import type { PostListItem } from '@/lib/blog'
 import {
     Card,
     CardHeader,
@@ -22,12 +22,12 @@ import {
 } from '@/components/ui/dropdown-menu'
 
 export type HomeClientProps = {
-    ssgPosts: PostMetadata[]
+    ssgPosts: PostListItem[]
 }
 
 type CombinedItem =
     | { source: 'client'; post: Post }
-    | { source: 'content'; post: PostMetadata }
+    | { source: 'content'; post: PostListItem }
 
 function isClient(
     item: CombinedItem,

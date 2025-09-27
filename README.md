@@ -5,7 +5,7 @@ A modern blog built with Next.js (App Router), React, TypeScript, Tailwind CSS, 
 It supports two kinds of posts:
 
 - **Client posts**: Created/managed in-app and stored locally (session) via `BlogContext`.
-- **Content posts**: Static Markdown files in the `content/` directory compiled at build time.
+- **Content posts**: Static Markdown files in the `content/` directory compiled at build time, so there are some blogs already.
 
 Key routes:
 
@@ -52,8 +52,22 @@ Theming is managed via a `ThemeProvider` (no localStorage). The `ThemeToggle` re
 
 - `generateStaticParams` uses `getAllSlugsSSG('content')` to prebuild static content routes.
 - `getPostBySlugSSG(slug, 'content')` parses a single Markdown file and maps frontmatter/content.
-- `getPostMetadataSSG('content')` lists slugs first, then reuses `getPostBySlugSSG` per slug.
+- `getPostListSSG('content')` returns a lightweight list (no `content` field) for the homepage to reduce payload.
+- `app/blog/[handle]/page.tsx` renders server-side content when a static post exists, and dynamically imports the client reader (`ClientPostReader`) only as a fallback for client posts.
 - Best-effort in-memory caching is used in production to avoid repeat reads/parses within a process.
+
+## Authoring content posts
+
+Place Markdown files in the `content/` directory. The filename (without `.md`) becomes the `slug`, rendered at `/blog/[slug]`.
+
+Required/optional frontmatter:
+
+```yaml
+title: My Post Title # required
+read_time: 5 min read # required (fallback may be derived in code)
+bio: Short description # required
+date: 2024-01-01 # optional (YYYY-MM-DD)
+```
 
 ### Markdown frontmatter
 
@@ -63,7 +77,6 @@ Use the following keys in `content/*.md`:
 title: My Post Title
 read_time: 5 min read
 bio: Short description
-image: https://...
 date: 2024-01-01
 ```
 
@@ -108,48 +121,36 @@ npm run strip:tsx-comments
 2. Start the dev server
 
     ```bash
-    npm run dev
+
     ```
 
 3. Open http://localhost:3000
 
 Optional env: set `NEXT_PUBLIC_SITE_URL` in `.env` for correct metadata base URLs.
 
----
+## Architecture overview
 
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+- **Server-first rendering**
+    - `app/page.tsx` is a server component that fetches a lightweight post list via `getPostListSSG`.
+    - `app/blog/[handle]/page.tsx` server-renders Markdown content when available; otherwise it dynamically imports the client-only reader.
+- **Client islands**
+    - `components/ClientPostReader.tsx` for client-stored posts (uses `BlogContext`).
+    - Interactive UI bits (menus, toggles) stay client-side; static markup stays server-side.
+- **Caching**
+    - In-memory caches in `lib/blog.ts` avoid repeated file reads during build/SSR.
 
-## Getting Started
+## Client vs Content posts
 
-First, run the development server:
+- **Client posts** (local/session)
+    - Created at `/posts/new`, edited at `/posts/[id]/edit`.
+    - Read under `/blog/[id]` via the client reader fallback.
+    - Data is persisted to `localStorage` by `BlogContext` after hydration.
+- **Content posts** (Markdown in `content/`)
+    - Each `*.md` file is a post; filename becomes the `slug`.
+    - Read under `/blog/[slug]` and fully server-rendered with Markdown.
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
+## What I could have done more/better?
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
-
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
-
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
-
-## Learn More
-
-To learn more about Next.js, take a look at the following resources:
-
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+- If I have wanted to fetch blogs from an API, I could have used `getServerSideProps` or `getStaticProps`.
+- Since functionality is very simple, I did not write tests, but if there was more functionality, I would have written tests, with Vitest and React Testing Library.
+-

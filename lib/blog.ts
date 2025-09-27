@@ -15,49 +15,11 @@ const FrontmatterSchema = z.object({
     title: z.string().min(1, 'Title is required'),
     read_time: z.string().min(1, 'Read time is required'),
     bio: z.string().min(1, 'Bio is required'),
-    image: z.string().url('Invalid image URL').optional(),
     date: z.string().optional(),
 })
 
 export type PostMetadata = UnifiedPostMetadata
-
-export async function getPostMetadataSSG(
-    basePath?: string,
-): Promise<PostMetadata[]> {
-    try {
-        const contentDir = path.join(process.cwd(), basePath || 'content')
-
-        // Check if directory exists
-        if (!fs.existsSync(contentDir)) {
-            console.warn(`Content directory not found: ${contentDir}`)
-            return []
-        }
-
-        const slugs = await getAllSlugsSSG(basePath)
-
-        const posts = await Promise.all(
-            slugs.map(async (slug) => getPostBySlugSSG(slug, basePath)),
-        )
-
-        // Filter out null values
-        const validPosts = posts.filter(
-            (post): post is PostMetadata => post !== null,
-        )
-
-        // Sort posts by date (newest first)
-        const sortedPosts = validPosts.sort((a, b) => {
-            if (a.date && b.date) {
-                return new Date(b.date).getTime() - new Date(a.date).getTime()
-            }
-            return 0
-        })
-
-        return sortedPosts
-    } catch (error) {
-        console.error('Error getting post metadata:', error)
-        return []
-    }
-}
+export type PostListItem = Omit<PostMetadata, 'content'>
 
 // Lightweight function to list all markdown slugs without parsing file contents
 export async function getAllSlugsSSG(basePath?: string): Promise<string[]> {
@@ -73,6 +35,30 @@ export async function getAllSlugsSSG(basePath?: string): Promise<string[]> {
 
     if (isProd) slugsCache.set(cacheKey, slugs)
     return slugs
+}
+
+// Lightweight list of posts without including markdown content (smaller payload for home)
+export async function getPostListSSG(
+    basePath?: string,
+): Promise<PostListItem[]> {
+    const slugs = await getAllSlugsSSG(basePath)
+    const items = await Promise.all(
+        slugs.map(async (slug) => {
+            const p = await getPostBySlugSSG(slug, basePath)
+            if (!p) return null
+            // Drop content to reduce payload by constructing item explicitly
+            const { title, readTime, bio, date, slug: s } = p
+            const item: PostListItem = {
+                title,
+                readTime,
+                bio,
+                date,
+                slug: s,
+            }
+            return item
+        }),
+    )
+    return items.filter((x): x is PostListItem => x !== null)
 }
 
 export async function getPostBySlugSSG(
@@ -101,7 +87,6 @@ export async function getPostBySlugSSG(
                 matterResult.data.description ||
                 matterResult.data.bio ||
                 'No description available',
-            image: matterResult.data.image,
             date: matterResult.data.date,
         })
         if (!raw.success) return null
@@ -110,7 +95,6 @@ export async function getPostBySlugSSG(
             title: raw.data.title,
             readTime: raw.data.read_time,
             bio: raw.data.bio,
-            image: raw.data.image,
             date: raw.data.date,
             slug,
             content: matterResult.content,
