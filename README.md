@@ -153,5 +153,3 @@ Optional env: set `NEXT_PUBLIC_SITE_URL` in `.env` for correct metadata base URL
 
 - If I have wanted to fetch blogs from an API, I could have used `getServerSideProps` or `getStaticProps`.
 - Since functionality is very simple, I did not write tests, but if there was more functionality, I would have written tests, with Vitest and React Testing Library.
-- Add toast messages on create/update/delete.
-- Dialog when deleting blogs, to ask user are they sure?

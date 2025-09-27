@@ -4,6 +4,7 @@ import { useParams, useRouter } from 'next/navigation'
 import PostForm from '@/components/PostForm'
 import { useBlog } from '@/context/BlogContext'
 import { type Post } from '@/types/post'
+import { toast } from '@/components/ui/sonner'
 
 export default function EditPostPage() {
     const params = useParams<{ id: string }>()
@@ -24,6 +25,11 @@ export default function EditPostPage() {
 
     function handleSubmit(data: Omit<Post, 'id'>) {
         updatePost({ ...current, ...data })
+        toast({
+            title: 'Post updated',
+            description: `“${current.title}” was updated.`,
+            variant: 'success',
+        })
         router.push(`/blog/${current.id}`)
     }
 

@@ -3,13 +3,19 @@
 import { useRouter } from 'next/navigation'
 import PostForm from '@/components/PostForm'
 import { useBlog } from '@/context/BlogContext'
+import { toast } from '@/components/ui/sonner'
 
 export default function NewPostPage() {
     const router = useRouter()
     const { createPost } = useBlog()
 
     function handleSubmit(data: Parameters<typeof createPost>[0]) {
-        createPost(data)
+        const post = createPost(data)
+        toast({
+            title: 'Post created',
+            description: `“${post.title}” was created.`,
+            variant: 'success',
+        })
         router.push(`/`)
     }
 

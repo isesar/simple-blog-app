@@ -20,6 +20,15 @@ import {
     DropdownMenuItem,
     DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
+import {
+    Dialog,
+    DialogContent,
+    DialogDescription,
+    DialogFooter,
+    DialogHeader,
+    DialogTitle,
+} from '@/components/ui/dialog'
+import { toast } from '@/components/ui/sonner'
 
 type HomeClientProps = {
     ssgPosts: PostListItem[]
@@ -123,55 +132,92 @@ function HeroCard({
     onDelete: (id: string) => void
     routerPush: (href: string) => void
 }) {
+    const [confirmOpen, setConfirmOpen] = React.useState(false)
     if (isClient(item)) {
         const p = item.post
         return (
-            <Card
-                className="rounded-2xl overflow-hidden cursor-pointer"
-                onClick={() => routerPush(`/blog/${p.id}`)}
-                role="button"
-                tabIndex={0}
-                onKeyDown={(e) => {
-                    if (e.key === 'Enter' || e.key === ' ') {
-                        e.preventDefault()
-                        routerPush(`/blog/${p.id}`)
-                    }
-                }}
-            >
-                <CardHeader className="px-6">
-                    <div className="flex items-start justify-between gap-4">
-                        <div>
-                            <CardTitle className="text-2xl">
-                                {p.title}
-                            </CardTitle>
-                            <CardDescription>
-                                {p.summary ||
-                                    p.content?.slice(0, 140) +
-                                        (p.content.length > 140 ? '…' : '')}
-                            </CardDescription>
+            <>
+                <Card
+                    className="rounded-2xl overflow-hidden cursor-pointer"
+                    onClick={() => routerPush(`/blog/${p.id}`)}
+                    role="button"
+                    tabIndex={0}
+                    onKeyDown={(e) => {
+                        if (e.key === 'Enter' || e.key === ' ') {
+                            e.preventDefault()
+                            routerPush(`/blog/${p.id}`)
+                        }
+                    }}
+                >
+                    <CardHeader className="px-6">
+                        <div className="flex items-start justify-between gap-4">
+                            <div>
+                                <CardTitle className="text-2xl">
+                                    {p.title}
+                                </CardTitle>
+                                <CardDescription>
+                                    {p.summary ||
+                                        p.content?.slice(0, 140) +
+                                            (p.content.length > 140 ? '…' : '')}
+                                </CardDescription>
+                            </div>
+                            <CardMenu
+                                onOpen={(e) => e.stopPropagation()}
+                                items={[
+                                    {
+                                        label: 'Open',
+                                        action: () =>
+                                            routerPush(`/blog/${p.id}`),
+                                    },
+                                    {
+                                        label: 'Edit',
+                                        action: () =>
+                                            routerPush(`/posts/${p.id}/edit`),
+                                    },
+                                    {
+                                        label: 'Delete',
+                                        action: () => setConfirmOpen(true),
+                                        variant: 'destructive' as const,
+                                    },
+                                ]}
+                            />
                         </div>
-                        <CardMenu
-                            onOpen={(e) => e.stopPropagation()}
-                            items={[
-                                {
-                                    label: 'Open',
-                                    action: () => routerPush(`/blog/${p.id}`),
-                                },
-                                {
-                                    label: 'Edit',
-                                    action: () =>
-                                        routerPush(`/posts/${p.id}/edit`),
-                                },
-                                {
-                                    label: 'Delete',
-                                    action: () => onDelete(p.id),
-                                    variant: 'destructive' as const,
-                                },
-                            ]}
-                        />
-                    </div>
-                </CardHeader>
-            </Card>
+                    </CardHeader>
+                </Card>
+                <Dialog open={confirmOpen} onOpenChange={setConfirmOpen}>
+                    <DialogContent>
+                        <DialogHeader>
+                            <DialogTitle>Delete post?</DialogTitle>
+                            <DialogDescription>
+                                Are you sure you want to delete “{p.title}”?
+                                This action cannot be undone.
+                            </DialogDescription>
+                        </DialogHeader>
+                        <DialogFooter>
+                            <Button
+                                variant="outline"
+                                onClick={() => setConfirmOpen(false)}
+                            >
+                                Cancel
+                            </Button>
+                            <Button
+                                variant="destructive"
+                                onClick={() => {
+                                    onDelete(p.id)
+                                    toast({
+                                        title: 'Post deleted',
+                                        description: `“${p.title}” was deleted.`,
+                                        variant: 'destructive',
+                                    })
+                                    setConfirmOpen(false)
+                                }}
+                            >
+                                Delete
+                            </Button>
+                        </DialogFooter>
+                    </DialogContent>
+                </Dialog>
+            </>
         )
     }
 
@@ -213,49 +259,86 @@ function PostListItem({
     onDelete: (id: string) => void
     routerPush: (href: string) => void
 }) {
+    const [confirmOpen, setConfirmOpen] = React.useState(false)
     if (isClient(item)) {
         const p = item.post
         return (
-            <Card
-                className="cursor-pointer"
-                onClick={() => routerPush(`/blog/${p.id}`)}
-                role="button"
-                tabIndex={0}
-            >
-                <CardHeader>
-                    <div className="flex items-start justify-between gap-4">
-                        <div>
-                            <CardTitle className="line-clamp-1">
-                                {p.title}
-                            </CardTitle>
-                            {p.summary && (
-                                <CardDescription className="line-clamp-2">
-                                    {p.summary}
-                                </CardDescription>
-                            )}
+            <>
+                <Card
+                    className="cursor-pointer"
+                    onClick={() => routerPush(`/blog/${p.id}`)}
+                    role="button"
+                    tabIndex={0}
+                >
+                    <CardHeader>
+                        <div className="flex items-start justify-between gap-4">
+                            <div>
+                                <CardTitle className="line-clamp-1">
+                                    {p.title}
+                                </CardTitle>
+                                {p.summary && (
+                                    <CardDescription className="line-clamp-2">
+                                        {p.summary}
+                                    </CardDescription>
+                                )}
+                            </div>
+                            <CardMenu
+                                onOpen={(e) => e.stopPropagation()}
+                                items={[
+                                    {
+                                        label: 'Open',
+                                        action: () =>
+                                            routerPush(`/posts/${p.id}`),
+                                    },
+                                    {
+                                        label: 'Edit',
+                                        action: () =>
+                                            routerPush(`/posts/${p.id}/edit`),
+                                    },
+                                    {
+                                        label: 'Delete',
+                                        action: () => setConfirmOpen(true),
+                                        variant: 'destructive' as const,
+                                    },
+                                ]}
+                            />
                         </div>
-                        <CardMenu
-                            onOpen={(e) => e.stopPropagation()}
-                            items={[
-                                {
-                                    label: 'Open',
-                                    action: () => routerPush(`/posts/${p.id}`),
-                                },
-                                {
-                                    label: 'Edit',
-                                    action: () =>
-                                        routerPush(`/posts/${p.id}/edit`),
-                                },
-                                {
-                                    label: 'Delete',
-                                    action: () => onDelete(p.id),
-                                    variant: 'destructive' as const,
-                                },
-                            ]}
-                        />
-                    </div>
-                </CardHeader>
-            </Card>
+                    </CardHeader>
+                </Card>
+                <Dialog open={confirmOpen} onOpenChange={setConfirmOpen}>
+                    <DialogContent>
+                        <DialogHeader>
+                            <DialogTitle>Delete post?</DialogTitle>
+                            <DialogDescription>
+                                Are you sure you want to delete “{p.title}”?
+                                This action cannot be undone.
+                            </DialogDescription>
+                        </DialogHeader>
+                        <DialogFooter>
+                            <Button
+                                variant="outline"
+                                onClick={() => setConfirmOpen(false)}
+                            >
+                                Cancel
+                            </Button>
+                            <Button
+                                variant="destructive"
+                                onClick={() => {
+                                    onDelete(p.id)
+                                    toast({
+                                        title: 'Post deleted',
+                                        description: `“${p.title}” was deleted.`,
+                                        variant: 'destructive',
+                                    })
+                                    setConfirmOpen(false)
+                                }}
+                            >
+                                Delete
+                            </Button>
+                        </DialogFooter>
+                    </DialogContent>
+                </Dialog>
+            </>
         )
     }
 
