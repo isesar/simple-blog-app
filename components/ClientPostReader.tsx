@@ -4,17 +4,10 @@ import { useParams, useRouter } from 'next/navigation'
 import { useBlog } from '@/context/BlogContext'
 import Link from 'next/link'
 import { Button } from '@/components/ui/button'
-import {
-    Card,
-    CardContent,
-    CardHeader,
-    CardTitle,
-    CardDescription,
-} from '@/components/ui/card'
+import PostArticle from '@/components/PostArticle'
 import {
     PencilIcon,
     TrashIcon,
-    CalendarIcon,
     MoreHorizontal,
     ArrowLeftIcon,
 } from 'lucide-react'
@@ -26,12 +19,13 @@ import {
     DropdownMenuSeparator,
 } from '@/components/ui/dropdown-menu'
 
-export default function PostDetailPage() {
-    const params = useParams<{ id: string }>()
+export default function ClientPostReader({ handle }: { handle?: string }) {
+    const params = useParams<{ handle?: string }>()
     const router = useRouter()
     const { getPostById, deletePost } = useBlog()
-    const id = params.id
-    const post = getPostById(id)
+
+    const id = handle ?? params.handle ?? ''
+    const post = id ? getPostById(id) : undefined
 
     if (!post) {
         return (
@@ -46,7 +40,7 @@ export default function PostDetailPage() {
         )
     }
 
-    const current = post as NonNullable<typeof post>
+    const current = post
 
     function handleDelete() {
         if (confirm('Delete this post?')) {
@@ -84,20 +78,13 @@ export default function PostDetailPage() {
                 </DropdownMenu>
             </div>
 
-            <Card>
-                <CardHeader>
-                    <CardTitle className="text-2xl">{current.title}</CardTitle>
-                    <CardDescription className="flex items-center gap-2">
-                        <CalendarIcon className="size-4" /> {current.date} • by{' '}
-                        {current.author} ({current.email})
-                    </CardDescription>
-                </CardHeader>
-                <CardContent>
-                    <div className="max-w-none whitespace-pre-wrap">
-                        {current.content}
-                    </div>
-                </CardContent>
-            </Card>
+            <PostArticle
+                title={current.title}
+                content={current.content}
+                date={current.date}
+                readTime={current.readTime}
+                bio={current.summary}
+            />
         </main>
     )
 }
