@@ -21,7 +21,7 @@ import {
     DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
 
-export type HomeClientProps = {
+type HomeClientProps = {
     ssgPosts: PostListItem[]
 }
 
