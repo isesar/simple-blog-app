@@ -12,7 +12,6 @@ export default function RootError({
     reset: () => void
 }) {
     useEffect(() => {
-        // Log the error to an error reporting service if desired
         console.error('Root error boundary:', error)
     }, [error])
 
