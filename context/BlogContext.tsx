@@ -52,27 +52,10 @@ function reducer(state: State, action: Action): State {
     }
 }
 
-const samplePosts: Post[] = [
-    {
-        id: 'SAMPLE-POST',
-        title: 'Welcome to Simple Blog',
-        summary:
-            'This is a demo blog built with Next.js, React, and TypeScript.',
-        content:
-            'Thank you for checking out this simple blog app. You can create, edit, and delete posts. Data is stored in localStorage during your session.',
-        author: 'Demo Author',
-        email: 'demo@example.com',
-        date: '2024-01-01',
-        readTime: '1 min read',
-    },
-]
-
 export function BlogProvider({ children }: { children: React.ReactNode }) {
-    // Start with a stable initial state for SSR to avoid hydration mismatch.
-    const [state, dispatch] = useReducer(reducer, { posts: samplePosts })
+    const [state, dispatch] = useReducer(reducer, { posts: [] })
     const hydratedRef = useRef(false)
 
-    // After mount, hydrate from localStorage if available.
     useEffect(() => {
         try {
             if (typeof window !== 'undefined') {

@@ -128,13 +128,13 @@ function HeroCard({
         return (
             <Card
                 className="rounded-2xl overflow-hidden cursor-pointer"
-                onClick={() => routerPush(`/posts/${p.id}`)}
+                onClick={() => routerPush(`/blog/${p.id}`)}
                 role="button"
                 tabIndex={0}
                 onKeyDown={(e) => {
                     if (e.key === 'Enter' || e.key === ' ') {
                         e.preventDefault()
-                        routerPush(`/posts/${p.id}`)
+                        routerPush(`/blog/${p.id}`)
                     }
                 }}
             >
@@ -155,7 +155,7 @@ function HeroCard({
                             items={[
                                 {
                                     label: 'Open',
-                                    action: () => routerPush(`/posts/${p.id}`),
+                                    action: () => routerPush(`/blog/${p.id}`),
                                 },
                                 {
                                     label: 'Edit',
@@ -218,7 +218,7 @@ function PostListItem({
         return (
             <Card
                 className="cursor-pointer"
-                onClick={() => routerPush(`/posts/${p.id}`)}
+                onClick={() => routerPush(`/blog/${p.id}`)}
                 role="button"
                 tabIndex={0}
             >

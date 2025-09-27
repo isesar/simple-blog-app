@@ -22,6 +22,13 @@ const schema = z.object({
     date: z.string().min(1, 'Date is required'),
 })
 
+// Estimate read time based on word count (default 200 words per minute)
+function computeReadTime(text: string, wpm = 200): string {
+    const words = text.trim().split(/\s+/).filter(Boolean).length
+    const minutes = Math.max(1, Math.ceil(words / wpm))
+    return `${minutes} min read`
+}
+
 export default function PostForm({
     initial,
     onSubmit,
@@ -62,7 +69,8 @@ export default function PostForm({
             return
         }
         setErrors({})
-        onSubmit(parsed.data)
+        const readTime = computeReadTime(parsed.data.content)
+        onSubmit({ ...parsed.data, readTime })
     }
 
     return (

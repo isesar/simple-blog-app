@@ -23,7 +23,6 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
         else root.classList.remove('dark')
     }, [])
 
-    // Initialize from system preference (no localStorage)
     React.useEffect(() => {
         try {
             const prefersDark =
@@ -31,12 +30,9 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
                 window.matchMedia &&
                 window.matchMedia('(prefers-color-scheme: dark)').matches
             setTheme(prefersDark ? 'dark' : 'light')
-        } catch {
-            // fallback stays as light
-        }
+        } catch {}
     }, [])
 
-    // Apply class to <html> when theme changes
     React.useEffect(() => {
         if (typeof document === 'undefined') return
         applyTheme(theme)
