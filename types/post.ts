@@ -14,5 +14,4 @@ export type PostMetadata = Pick<Post, 'title' | 'content' | 'readTime'> & {
     date?: string
     slug: string
     bio: string
-    image?: string
 }
