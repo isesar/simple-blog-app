@@ -5,6 +5,7 @@ import Topbar from '@/components/Topbar'
 import Footer from '@/components/Footer'
 import { BlogProvider } from '@/context/BlogContext'
 import { ThemeProvider } from '@/context/ThemeContext'
+import { Toaster } from '@/components/ui/sonner'
 
 const geistSans = Geist({
     variable: '--font-geist-sans',
@@ -86,6 +87,7 @@ export default function RootLayout({
                         <Topbar />
                         <main className="flex-1">{children}</main>
                         <Footer />
+                        <Toaster />
                     </BlogProvider>
                 </ThemeProvider>
             </body>
