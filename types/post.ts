@@ -1,12 +1,12 @@
 export type Post = {
     id: string
-    title: string // max 50
-    summary: string // max 250
+    title: string
+    summary: string
     content: string
-    author: string // max 40
-    email: string // valid email
-    date: string // ISO or YYYY-MM-DD
-    readTime: string // e.g. "5 min read"
+    author: string
+    email: string
+    date: string
+    readTime: string
 }
 
 // Metadata for markdown-backed posts. Reuses fields from Post for consistency.

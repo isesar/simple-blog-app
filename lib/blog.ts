@@ -5,12 +5,10 @@ import { z } from 'zod'
 import type { PostMetadata as UnifiedPostMetadata } from '@/types/post'
 
 // Simple in-memory cache to avoid re-reading/parsing the same files repeatedly
-// Note: Next.js may run some functions in separate processes; caching is best-effort.
 const isProd = process.env.NODE_ENV === 'production'
 const postBySlugCache = new Map<string, UnifiedPostMetadata>()
 const slugsCache = new Map<string, string[]>() // key: contentDir
 
-// Frontmatter schema (raw), later mapped to unified PostMetadata
 const FrontmatterSchema = z.object({
     title: z.string().min(1, 'Title is required'),
     read_time: z.string().min(1, 'Read time is required'),
@@ -37,7 +35,6 @@ export async function getAllSlugsSSG(basePath?: string): Promise<string[]> {
     return slugs
 }
 
-// Lightweight list of posts without including markdown content (smaller payload for home)
 export async function getPostListSSG(
     basePath?: string,
 ): Promise<PostListItem[]> {
@@ -46,7 +43,6 @@ export async function getPostListSSG(
         slugs.map(async (slug) => {
             const p = await getPostBySlugSSG(slug, basePath)
             if (!p) return null
-            // Drop content to reduce payload by constructing item explicitly
             const { title, readTime, bio, date, slug: s } = p
             const item: PostListItem = {
                 title,
